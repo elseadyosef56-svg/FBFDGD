@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YosefTST - Elite Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apple-bg: #fbfbfd;
+            --apple-gray: #f5f5f7;
+            --apple-text: #1d1d1f;
+            --apple-blue: #0071e3;
+            --glass: rgba(255, 255, 255, 0.9);
+            --line-height: 1.85;
+        }
+
+        body {
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 10% 10%, #e8f0fe 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, #f5f0ff 0%, transparent 40%);
+            opacity: 0.5;
+        }
+
+        .nav-glass {
+            background: var(--glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .apple-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #2c2c2e 0%, #000 100%);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .chat-scroller {
+            flex: 1;
+            overflow-y: auto;
+            padding: 3rem 1.5rem;
+            scrollbar-width: none;
+            mask-image: linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
+        }
+        .chat-scroller::-webkit-scrollbar { display: none; }
+
+        .msg-row {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            margin-bottom: 2.5rem;
+        }
+        .msg-row.active { opacity: 1; transform: translateY(0); }
+
+        .ai-content {
+            font-size: 1.25rem;
+            line-height: var(--line-height);
+            max-width: 88%;
+            color: var(--apple-text);
+            font-weight: 400;
+        }
+
+        .user-content {
+            background: #fff;
+            padding: 1rem 1.8rem;
+            border-radius: 24px;
+            max-width: 75%;
+            font-weight: 500;
+            font-size: 1.15rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .error-content {
+            background: #fff0f0;
+            color: #d32f2f;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            border: 1px solid #ffcdd2;
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.1);
+        }
+
+        .dock-container {
+            max-width: 800px;
+            width: 90%;
+            margin: 0 auto 2.5rem;
+        }
+
+        .input-dock {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 32px;
+            padding: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: flex-end;
+            transition: all 0.3s ease;
+        }
+
+        .main-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 14px 20px;
+            font-size: 1.15rem;
+            max-height: 200px;
+            resize: none;
+            color: var(--apple-text);
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            background: var(--apple-text);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .send-button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .libya-chip {
+            background: rgba(255, 255, 255, 0.7);
+            border: 0.5px solid rgba(0,0,0,0.1);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 5px; height: 5px;
+            background: #aaa; border-radius: 50%;
+            animation: blink 1.2s infinite ease-in-out;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg"></div>
+
+    <nav class="nav-glass px-6 py-4 md:px-12 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <div class="apple-logo">
+                <span class="text-white font-black text-xl tracking-tighter">Y</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-lg font-bold tracking-tight">YosefTST</span>
+                <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-[0.2em]">Natural Intelligence</span>
+            </div>
+        </div>
+        <div class="libya-chip">
+            <span id="nav-indicator" class="w-2 h-2 bg-green-500 rounded-full"></span>
+            <span>طرابلس، ليبيا</span>
+        </div>
+    </nav>
+
+    <main class="flex-1 flex flex-col w-full max-w-4xl mx-auto px-6 overflow-hidden">
+        
+        <div id="welcome-screen" class="flex-1 flex flex-col justify-center items-start py-12">
+            <h2 class="text-2xl font-bold text-gray-400 mb-2">مرحبتين بك!</h2>
+            <h1 class="text-5xl md:text-6xl font-bold tracking-tighter mb-6 leading-tight">
+                أهلاً بك، أنا <span class="text-blue-600">يوسف TST.</span>
+            </h1>
+            <div class="text-2xl text-gray-600 max-w-2xl font-medium leading-relaxed mb-10 space-y-4">
+                <p>ذكاء اصطناعي فائق بخلفية علمية من ستانفورد ومعهد ماساتشوستس للتكنولوجيا، وأفتخر بأصولي الليبية.</p>
+                <p class="text-lg text-gray-400">لقد قمت بتحديث النظام لضمان استقرار الاتصال. جرب إرسال استفسارك الآن.</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-4">
+                <button onclick="fillSend('اقترح علي خطة بحث علمي احترافية')" class="bg-white border border-gray-100 px-7 py-4 rounded-2xl shadow-sm hover:shadow-md transition-all font-bold text-sm">البحث العلمي</button>
+                <button onclick="fillSend('كيف يمكن تطوير التكنولوجيا في ليبيا؟')" class="bg-white border border-gray-100 px-7 py-4 rounded-2xl shadow-sm hover:shadow-md transition-all font-bold text-sm">التكنولوجيا محلياً</button>
+            </div>
+        </div>
+
+        <div id="chat-scroller" class="chat-scroller hidden flex flex-col pt-12"></div>
+
+        <div class="dock-container">
+            <div class="input-dock">
+                <textarea id="input-box" rows="1" placeholder="اسأل، ابحث، أو دردش..." class="main-textarea"></textarea>
+                <button id="send-btn" class="send-button shadow-md">
+                    <svg id="send-icon" class="w-5 h-5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7-7 7M5 5l7 7-7 7"></path>
+                    </svg>
+                    <div id="loading-dots" class="hidden flex gap-1 p-2">
+                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    </div>
+                </button>
+            </div>
+            <div class="flex justify-between mt-4 px-5">
+                <span class="text-[9px] font-black text-gray-300 tracking-[0.4em] uppercase">Multi-Language Core v6.0</span>
+                <span id="status-label" class="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase">Status: System Optimized</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // مفتاح الـ API الخاص بك
+        const apiKey = "AIzaSyAXWd7L4vdnrOptElYvzcVEVVEqlZsnn4U"; 
+
+        const input = document.getElementById('input-box');
+        const sendBtn = document.getElementById('send-btn');
+        const chatScroller = document.getElementById('chat-scroller');
+        const welcome = document.getElementById('welcome-screen');
+        const loadingDots = document.getElementById('loading-dots');
+        const sendIcon = document.getElementById('send-icon');
+        const statusLabel = document.getElementById('status-label');
+        const navIndicator = document.getElementById('nav-indicator');
+
+        // نظام فحص المفتاح والاتصال عند التشغيل
+        async function checkSystem() {
+            if (!apiKey || apiKey.length < 10) {
+                statusLabel.innerText = "Status: API KEY ERROR";
+                navIndicator.classList.replace('bg-green-500', 'bg-red-500');
+                return false;
+            }
+            return true;
+        }
+
+        async function smartFetch(prompt, retryCount = 0) {
+            try {
+                // استخدام رابط Gemini 1.5 Flash الأكثر استقراراً مع تجاوز الـ Cache
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}&nocache=${Date.now()}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 2048,
+                        },
+                        systemInstruction: { 
+                            parts: [{ 
+                                text: "أنت YosefTST، باحث ومستشار تقني ليبي، خريج ستانفورد وMIT. لغتك عربية فصحى رصينة مع روح ليبية ودودة." 
+                            }] 
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // معالجة ذكية للأخطاء: المحاولة مرة أخرى في حال حدوث خطأ مؤقت
+                    if ((response.status === 429 || response.status >= 500) && retryCount < 2) {
+                        statusLabel.innerText = "Status: Reconnecting...";
+                        await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+                        return smartFetch(prompt, retryCount + 1);
+                    }
+                    throw new Error(data.error?.message || "Internal Bridge Error");
+                }
+
+                if (!data.candidates || data.candidates.length === 0) {
+                    throw new Error("No response from AI brain.");
+                }
+
+                return data.candidates[0].content.parts[0].text;
+
+            } catch (err) {
+                console.error("Critical Failure:", err);
+                throw err;
+            }
+        }
+
+        async function processQuery(customText = null) {
+            const prompt = customText || input.value.trim();
+            if (!prompt) return;
+
+            if (!await checkSystem()) return;
+
+            // إخفاء واجهة الترحيب بشكل احترافي
+            if (!welcome.classList.contains('hidden')) {
+                gsap.to(welcome, { opacity: 0, scale: 0.98, duration: 0.3, onComplete: () => {
+                    welcome.classList.add('hidden');
+                    chatScroller.classList.remove('hidden');
+                    gsap.from(chatScroller, { opacity: 0, duration: 0.5 });
+                }});
+            }
+
+            toggleLoading(true);
+            appendMsg(prompt, 'user');
+            input.value = "";
+            input.style.height = 'auto';
+
+            try {
+                const output = await smartFetch(prompt);
+                appendMsg(output, 'ai');
+                statusLabel.innerText = "Status: Optimized Connected";
+                navIndicator.classList.replace('bg-red-500', 'bg-green-500');
+            } catch (err) {
+                appendError(`خطأ في الوصول: ${err.message}`);
+                statusLabel.innerText = "Status: Connection Failed";
+                navIndicator.classList.replace('bg-green-500', 'bg-red-500');
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        function toggleLoading(isLoading) {
+            if (isLoading) {
+                sendIcon.classList.add('hidden');
+                loadingDots.classList.remove('hidden');
+                sendBtn.disabled = true;
+                statusLabel.innerText = "Status: Thinking...";
+            } else {
+                sendIcon.classList.remove('hidden');
+                loadingDots.classList.add('hidden');
+                sendBtn.disabled = false;
+            }
+        }
+
+        function appendMsg(content, role) {
+            const row = document.createElement('div');
+            row.className = `msg-row flex flex-col ${role === 'user' ? 'items-end' : 'items-start'}`;
+            const bubble = document.createElement('div');
+            bubble.className = role === 'user' ? 'user-content shadow-sm' : 'ai-content';
+            
+            // تحويل الروابط والنصوص البرمجية بشكل مبسط
+            bubble.innerHTML = content.replace(/\n/g, '<br>');
+            
+            row.appendChild(bubble);
+            chatScroller.appendChild(row);
+            
+            setTimeout(() => row.classList.add('active'), 50);
+            chatScroller.scrollTo({ top: chatScroller.scrollHeight, behavior: 'smooth' });
+        }
+
+        function appendError(errMsg) {
+            const row = document.createElement('div');
+            row.className = `msg-row flex flex-col items-center`;
+            const errorBox = document.createElement('div');
+            errorBox.className = 'error-content shadow-md';
+            errorBox.innerHTML = `⚠️ <strong>تنبيه النظام:</strong> ${errMsg}`;
+            row.appendChild(errorBox);
+            chatScroller.appendChild(row);
+            setTimeout(() => row.classList.add('active'), 50);
+            chatScroller.scrollTop = chatScroller.scrollHeight;
+        }
+
+        function fillSend(t) {
+            input.value = t;
+            processQuery(t);
+        }
+
+        sendBtn.addEventListener('click', () => processQuery());
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                processQuery();
+            }
+        });
+
+        // تشغيل فحص النظام عند البداية
+        checkSystem();
+    </script>
+</body>
+</html>
